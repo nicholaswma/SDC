@@ -1,0 +1,23 @@
+{
+  "name": "sdc",
+  "version": "1.0.0",
+  "description": "SDC capstone project for Hack Reactor",
+  "main": "/server/index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FEC-Team-4/SDC.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FEC-Team-4/SDC/issues"
+  },
+  "homepage": "https://github.com/FEC-Team-4/SDC#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1"
+  }
+}
