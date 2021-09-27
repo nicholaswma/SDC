@@ -4,7 +4,8 @@
   "description": "SDC capstone project for Hack Reactor",
   "main": "/server/index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "start": "nodemon ./server/index.js"
   },
   "repository": {
     "type": "git",
@@ -19,5 +20,8 @@
   "dependencies": {
     "dotenv": "^10.0.0",
     "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.13"
   }
 }
