@@ -3,6 +3,7 @@ const router = require('express').Router();
 // const Answers = require('../models/Answers');
 const db = require('../config/database')
 
+//get all questions and answers for a specific product
 router.get('/questions', async (req, res) => {
   const productId = req.query.product_id;
   const count = req.query.count || 5;
@@ -46,13 +47,53 @@ router.get('/questions', async (req, res) => {
   }
 })
 
-
+//get all answers for a specific question
 router.get('/questions/:question_id/answers', async (req, res) => {
   const id = req.params.question_id
+  const page = req.query.page || 1;
+  const count = parseInt(req.query.count) || 5;
   try {
-    res.send(id)
+    const result = await(db.query(`SELECT answers.answers_id as answer_id,
+                                    answers.a_body as body,
+                                    answers.date_answered as date,
+                                    answers.answerer_name as answerer_name,
+                                    answers.answer_helpful as helpfulness,
+                                    json_build_array(photos.url) as photos
+                                    FROM answers LEFT JOIN photos ON answers.answers_id = photos.answers_id
+                                    WHERE answers.questions_id = ${id}`))
+    result.rows.map((ele) => {
+      ele.date = new Date (parseInt(ele.date))
+      if (ele.photos[0] === null) {
+        ele.photos = [];
+      }
+    })
+    res.send({question: id,
+              page: page,
+              count: count,
+              results: result.rows})
   } catch (err) {
     console.log(err)
+  }
+})
+
+//Add a question
+router.post('/questions', async (req, res) => {
+  try {
+    const body = req.body.body
+    const name = req.body.name
+    const email = req.body.email
+    const productId = req.body.product_id;
+    const date = Date.now();
+    let next = [];
+    var nextId = await (db.query(`SELECT questions_id as i FROM questions ORDER BY questions_id DESC LIMIT 1`))
+    await next.push(nextId.rows[0].i + 1)
+    await(db.query(`INSERT INTO questions
+                  (questions_id, date_written, questions_body, product_id, asker_name, asker_email, questions_reported, questions_helpful)
+                  VALUES (${next[0]}, ${date}, '${body}', ${productId}, '${name}', '${email}', 0, 0);`))
+    res.send('Questions Received').status(200)
+  } catch (err) {
+    console.log(err)
+    res.status(404)
   }
 })
 
