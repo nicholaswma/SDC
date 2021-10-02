@@ -1,7 +1,8 @@
 const router = require('express').Router();
 // const Question = require('../models/Question');
 // const Answers = require('../models/Answers');
-const db = require('../config/database')
+const db = require('../config/database');
+const models = require('../models/index')
 
 //get all questions and answers for a specific product
 router.get('/questions', async (req, res) => {
@@ -14,17 +15,17 @@ router.get('/questions', async (req, res) => {
                                     questions.asker_name,
                                     questions.questions_helpful AS question_helpfulness,
                                     questions.questions_reported as reported,
-                                    json_object_agg(answers.answers_id,
+                                    json_object_agg(answers_and_photos.answers_id,
                                       json_build_object(
-                                        'id', answers.answers_id,
-                                        'body', answers.a_body,
-                                        'date', answers.date_answered,
-                                        'answerer_name', answers.answerer_name,
-                                        'helpfulness', answers.answer_helpful,
-                                        'photos', json_build_array(photos.url)
+                                        'id', answers_and_photos.answers_id,
+                                        'body', answers_and_photos.a_body,
+                                        'date', answers_and_photos.date_answered,
+                                        'answerer_name', answers_and_photos.answerer_name,
+                                        'helpfulness', answers_and_photos.answer_helpful,
+                                        'photos', json_build_array(answers_and_photos.photos)
                                       )) AS answers
-                                  FROM questions JOIN answers ON questions.product_id = ${productId} AND questions.questions_id = answers.questions_id
-                                  LEFT JOIN photos ON answers.answers_id = photos.answers_id
+                                  FROM questions JOIN answers_and_photos ON questions.questions_id = answers_and_photos.questions_id
+                                  WHERE questions.product_id = ${productId}
                                   GROUP BY questions.questions_id LIMIT ${count}`))
     result.rows.map((ele) => {
       ele.question_date = new Date (parseInt(ele.question_date))
@@ -36,6 +37,7 @@ router.get('/questions', async (req, res) => {
       }
       arr.forEach(num => {
         ele.answers[num].date = new Date (parseInt(ele.answers[num].date))
+        ele.photos = []
         if (ele.answers[num].photos[0] === null) {
           ele.answers[num].photos = [];
           }
@@ -54,14 +56,14 @@ router.get('/questions/:question_id/answers', async (req, res) => {
   const page = req.query.page || 1;
   const count = parseInt(req.query.count) || 5;
   try {
-    const result = await(db.query(`SELECT answers.answers_id as answer_id,
-                                    answers.a_body as body,
-                                    answers.date_answered as date,
-                                    answers.answerer_name as answerer_name,
-                                    answers.answer_helpful as helpfulness,
-                                    json_build_array(photos.url) as photos
-                                    FROM answers LEFT JOIN photos ON answers.answers_id = photos.answers_id
-                                    WHERE answers.questions_id = ${id}`))
+    const result = await(db.query(`SELECT answers_and_photos.answers_id as answer_id,
+                                    answers_and_photos.a_body as body,
+                                    answers_and_photos.date_answered as date,
+                                    answers_and_photos.answerer_name as answerer_name,
+                                    answers_and_photos.answer_helpful as helpfulness,
+                                    json_build_array(answers_and_photos.photos) as photos
+                                    FROM answers_and_photos
+                                    WHERE answers_and_photos.questions_id = ${id}`))
     result.rows.map((ele) => {
       ele.date = new Date (parseInt(ele.date))
       if (ele.photos[0] === null) {
@@ -107,9 +109,9 @@ router.post('/questions/:question_id/answers', async (req, res) => {
     const email = req.body.email
     const date = Date.now();
     let next = [];
-    var nextId = await (db.query(`SELECT answers_id as i FROM answers ORDER BY answers_id DESC LIMIT 1`))
+    var nextId = await (db.query(`SELECT answers_id as i FROM answers_and_photos ORDER BY answers_id DESC LIMIT 1`))
     await next.push(nextId.rows[0].i + 1)
-    await(db.query(`INSERT INTO answers
+    await(db.query(`INSERT INTO answers_and_photos
                   (answers_id, date_answered, a_body, questions_id, answerer_name, answerer_email, answer_reported, answer_helpful)
                   VALUES (${next[0]}, ${date}, '${body}', ${id}, '${name}', '${email}', 0, 0);`))
     res.send('Answer Received').status(200)
@@ -146,7 +148,7 @@ router.put('/questions/:question_id/report', async (req, res) => {
 router.put('/answers/:answer_id/helpful', async (req, res) => {
   const id = req.params.answer_id
   try {
-    await(db.query(`UPDATE answers SET answer_helpful = answer_helpful + 1 WHERE answers_id = ${id}`))
+    await(db.query(`UPDATE answers_and_photos SET answer_helpful = answer_helpful + 1 WHERE answers_id = ${id}`))
     res.send('Answer marked as helpful').status(204)
   } catch (err){
     console.log(err)

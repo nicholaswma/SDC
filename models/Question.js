@@ -1,5 +1,5 @@
 // const sequelize = require('sequelize');
-// const db = require('../config/database');
+const db = require('../config/database');
 
 // const Question = db.define('question', {
 //   product_id: {
@@ -44,3 +44,13 @@
 // //   reported int not null,
 // //   helpful int not null
 // // );
+
+module.exports = {
+  test: function async (callback) {
+    try {
+      const result = await (db.query(`SELECT photos.answers_id, string_agg(url, ', ') FROM photos GROUP BY photos.answers_id`))
+      callback(err, results);
+    } catch (err) {
+    }
+  }
+}
