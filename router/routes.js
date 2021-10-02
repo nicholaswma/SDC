@@ -44,6 +44,7 @@ router.get('/questions', async (req, res) => {
     res.send({product_id: parseInt(productId), results: result.rows})
   } catch (err) {
     console.log(err)
+    res.send('err').status(400)
   }
 })
 
@@ -96,5 +97,74 @@ router.post('/questions', async (req, res) => {
     res.status(404)
   }
 })
+
+// Add an answer
+router.post('/questions/:question_id/answers', async (req, res) => {
+  try {
+    const id = req.params.question_id
+    const body = req.body.body
+    const name = req.body.name
+    const email = req.body.email
+    const date = Date.now();
+    let next = [];
+    var nextId = await (db.query(`SELECT answers_id as i FROM answers ORDER BY answers_id DESC LIMIT 1`))
+    await next.push(nextId.rows[0].i + 1)
+    await(db.query(`INSERT INTO answers
+                  (answers_id, date_answered, a_body, questions_id, answerer_name, answerer_email, answer_reported, answer_helpful)
+                  VALUES (${next[0]}, ${date}, '${body}', ${id}, '${name}', '${email}', 0, 0);`))
+    res.send('Answer Received').status(200)
+  } catch (err) {
+    console.log(err)
+    res.status(404)
+  }
+})
+
+// Mark Question as helpful
+router.put('/questions/:question_id/helpful', async (req, res) => {
+  const id = req.params.question_id
+  try {
+    await(db.query(`UPDATE questions SET questions_helpful = questions_helpful + 1 WHERE questions_id = ${id}`))
+    res.send('Questions marked as helpful').status(204)
+  } catch (err){
+    console.log(err)
+    res.status(400).send(err)
+  }
+})
+//Report Question
+router.put('/questions/:question_id/report', async (req, res) => {
+  const id = req.params.question_id
+  try {
+    await(db.query(`UPDATE questions SET questions_reported = 1 WHERE questions_id = ${id}`))
+    res.send('Question Reported').status(204)
+  } catch (err){
+    console.log(err)
+    res.status(400).send(err)
+  }
+})
+
+//Mark Answer as helpful
+router.put('/answers/:answer_id/helpful', async (req, res) => {
+  const id = req.params.answer_id
+  try {
+    await(db.query(`UPDATE answers SET answer_helpful = answer_helpful + 1 WHERE answers_id = ${id}`))
+    res.send('Answer marked as helpful').status(204)
+  } catch (err){
+    console.log(err)
+    res.status(400).send(err)
+  }
+})
+
+//Report Answer
+router.put('/answers/:answer_id/report', async (req, res) => {
+  const id = req.params.answer_id
+  try {
+    await(db.query(`UPDATE answers SET answer_reported = 1 WHERE answers_id = ${id}`))
+    res.send('Answer Reported').status(204)
+  } catch (err){
+    console.log(err)
+    res.status(400).send(err)
+  }
+})
+
 
 module.exports = router
