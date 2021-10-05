@@ -1,36 +1,55 @@
-DROP TABLE questions
-DROP TABLE answers
+DROP TABLE answers;
+DROP TABLE questions;
+DROP TABLE photos;
+DROP TABLE answers_and_photos
+
 
 CREATE TABLE questions (
-    question_id SERIAL PRIMARY KEY,
+    questions_id SERIAL PRIMARY KEY,
     product_id int not null,
-    question_body text not null,
-    question_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    questions_body text not null,
+    date_written bigint NOT NULL,
     asker_name text not null,
     asker_email text not null,
-    reported int not null,
-    question_helpfulness int not null,
+    questions_reported int not null,
+    questions_helpful int not null
 );
+
+COPY questions (questions_id, product_id, questions_body, date_written, asker_name, asker_email, questions_reported, questions_helpful)
+FROM '/Users/nickey/Desktop/data/answers.csv'
+DELIMITER ','
+CSV HEADER;
+
 
 CREATE TABLE answers (
     answers_id SERIAL PRIMARY KEY,
-    question_id int not null,
-    body text not null,
-    date_answered DATE NOT NULL DEFAULT CURRENT_DATE,
+    questions_id int not null,
+    a_body text not null,
+    date_answered bigint NOT NULL,
     answerer_name text not null,
     answerer_email text not null,
-    reported int not null,
-    answer_helpfulness int not null,
+    answer_reported int not null,
+    answer_helpful int not null,
     constraint fk_questions
-      foreign key (question_id)
-      references questions(question_id)
+      foreign key (questions_id)
+      references questions(questions_id)
 );
 
+COPY answers (answers_id, questions_id, a_body, date_answered, answerer_name, answerer_email, answer_reported, answer_helpful)
+FROM '/Users/nickey/Desktop/data/answers.csv'
+DELIMITER ','
+CSV HEADER;
+
 CREATE TABLE photos (
-  id SERIAL PRIMARY KEY,
-  answer_id INT NOT NULL,
+  photos_id SERIAL PRIMARY KEY,
+  answers_id INT NOT NULL,
   url TEXT
-)
+);
+
+COPY photos (photos_id, answers_id, url)
+FROM '/Users/nickey/Desktop/data/answers_photos.csv'
+DELIMITER ','
+CSV HEADER;
 
  SELECT a.questions_id, a.answers_id, a.a_body, a.date_answered, a.answerer_name, a.answer_helpful, a.answer_reported, a.answerer_email,
       CASE
@@ -45,19 +64,15 @@ CREATE TABLE photos (
       GROUP BY a.answers_id
       ORDER BY a.answer_helpful DESC
 
-CREATE TABLE photos_url (
-    id SERIAL PRIMARY KEY,
-    answers_id int not null,
-    url text not null
-    constraint fk_questions
-      foreign key (answers_id)
-      references answers(answers_id)
-);
+CREATE INDEX questions_id ON questions(questions_id);
+CREATE INDEX questions_body ON questions(questions_body);
+CREATE INDEX product_id ON questions(product_id);
 
-COPY photos_url(answers_id, url)
-FROM '/Users/nickey/Desktop/data/url.csv'
-DELIMITER ','
-CSV HEADER;
+
+CREATE INDEX answers_id ON answers_and_photos(answers_id);
+CREATE INDEX a_body ON answers_and_photos(a_body);
+CREATE INDEX questions_id_aap ON answers_and_photos(questions_id);
+
 
 -- SELECT questions.questions_id AS question_id,
 --                                     questions.questions_body AS question_body,

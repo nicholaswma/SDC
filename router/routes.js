@@ -114,12 +114,13 @@ router.post('/questions/:question_id/answers', async (req, res) => {
     await(db.query(`INSERT INTO answers_and_photos
                   (answers_id, date_answered, a_body, questions_id, answerer_name, answerer_email, answer_reported, answer_helpful)
                   VALUES (${next[0]}, ${date}, '${body}', ${id}, '${name}', '${email}', 0, 0);`))
-    res.send('Answer Received').status(200)
+    res.send(`Answer Received, answerId = ${next[0]}`).status(200)
   } catch (err) {
     console.log(err)
     res.status(404)
   }
 })
+
 
 // Mark Question as helpful
 router.put('/questions/:question_id/helpful', async (req, res) => {
