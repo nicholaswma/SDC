@@ -1,0 +1,11 @@
+FROM node:14-alpine
+ENV ALPINE_MIRROR "http://dl-cdn.alpinelinux.org/alpine"
+ENV NODE_ENV=production
+WORKDIR /usr/src/app
+COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
+RUN apk update
+RUN apk add --update npm
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["/bin/sh"]

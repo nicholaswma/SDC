@@ -14,8 +14,8 @@ require('dotenv').config({path: env})
 app.use('/qa', router);
 
 // loader.ioconfig
-app.get('/67ab303709e345f5fda283506bb19c71', (req, res) => {
-  res.status(200).sendFiles(path.join(__dirname + "/loaderio-67ab303709e345f5fda283506bb19c71.txt"));
+app.get('/loaderio-9bf6be8f004d55be99bb363e173805f9', (req, res) => {
+  res.status(200).sendFile(path.join(__dirname + "/loaderio-67ab303709e345f5fda283506bb19c71.txt"));
 })
 
 app.listen(process.env.PORT, () => {
